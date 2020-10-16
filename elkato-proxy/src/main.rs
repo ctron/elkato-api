@@ -73,6 +73,7 @@ async fn main() -> anyhow::Result<()> {
             .data(web::JsonConfig::default().limit(4096))
             .data(client.clone())
             .service(index)
+            .service(health)
             .service(list_current_bookings)
     })
     .bind(addr.unwrap_or("127.0.0.1:8080"))?
