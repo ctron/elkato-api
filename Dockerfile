@@ -4,4 +4,6 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 ENV PATH=$PATH:$HOME/.cargo/bin
 
+RUN echo $PATH
+
 RUN cargo build --release
