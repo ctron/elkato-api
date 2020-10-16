@@ -14,6 +14,11 @@ async fn index() -> impl Responder {
     HttpResponse::Ok().json(json!({"success": true}))
 }
 
+#[get("/health")]
+async fn health() -> impl Responder {
+    HttpResponse::Ok().finish()
+}
+
 #[get("/{club}/bookings/current")]
 async fn list_current_bookings(
     club: web::Path<String>,
