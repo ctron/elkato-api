@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elkato-proxy
+  labels:
+    app: elkato-proxy
+  annotations:
+    image.openshift.io/triggers: |
+      [
+        {
+          "from": {
+            "kind":"ImageStreamTag",
+            "name":"elkato-proxy:latest"
+          },
+          "fieldPath":"spec.template.spec.containers[?(@.name==\"proxy\")].image"
+        }
+      ]
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elkato-proxy
+  template:
+    metadata:
+      labels:
+        app: elkato-proxy
+    spec:
+      containers:
+        - name: proxy
+          image: elkato-proxy
+          env:
+            - name: RUST_LOG
+              value: info
+          ports:
+            - containerPort: 8080
+              name: api
+              protocol: TCP
+

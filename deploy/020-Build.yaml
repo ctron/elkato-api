@@ -1,0 +1,28 @@
+---
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: elkato-proxy
+spec:
+  triggers:
+    - type: ImageChange
+  source:
+    type: git
+    git:
+      uri: https://github.com/ctron/elkato-api
+      ref: main
+    images:
+      - as: [builder]
+        from:
+          kind: ImageStreamTag
+          name: ubi8-minimal:latest
+  strategy:
+    type: docker
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: rust:latest
+  output:
+    to:
+      kind: ImageStreamTag
+      name: elkato-proxy:latest

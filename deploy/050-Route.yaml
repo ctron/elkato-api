@@ -1,0 +1,12 @@
+kind: Route
+apiVersion: v1
+metadata:
+  name: elkato
+spec:
+  to:
+    kind: Service
+    name: elkato
+  port:
+    targetPort: api
+  tls:
+    termination: reencrypt
