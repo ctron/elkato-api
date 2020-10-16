@@ -1,3 +1,4 @@
+use nom::complete;
 use nom::do_parse;
 use nom::many0;
 use nom::many_till;
@@ -37,7 +38,6 @@ named!(date<&str,DateTime<Utc>>,
         )
 );
 
-//named!(space<&str, Vec<char>>, many0!(char!(' ')));
 named!(space<&str, Vec<char>>,
      many0!(one_of!("\t\n\r "))
 );
@@ -122,7 +122,7 @@ named!(
 
 named!(all_entries<&str, (Option<Paging>,Vec<Booking>)>,
     do_parse!(
-        paging: opt!(paging) >>
+        paging: opt!(complete!(paging)) >>
         entries: many_till!(result_entry, tag!("</TABLE>")) >>
         (
             (paging, entries.0)
@@ -137,7 +137,14 @@ pub struct ListResponse {
 }
 
 pub fn parse_query(body: &String) -> anyhow::Result<ListResponse> {
-    println!("Payload: {}", body);
+    log::trace!("Payload: {}", body);
+
+    if body.contains("<B>Die Suche ergab keine Treffer!</B>") {
+        return Ok(ListResponse {
+            paging: None,
+            bookings: vec![],
+        });
+    }
 
     match all_entries(&body) {
         Ok(result) => {
@@ -150,6 +157,12 @@ pub fn parse_query(body: &String) -> anyhow::Result<ListResponse> {
                 bookings: r.1,
             })
         }
-        _ => Err(anyhow!("Failed to parse")),
+        e => {
+            log::debug!("Payload: {}", body);
+            log::debug!("Parse failure: {:?}", e);
+
+            //Err(e.context("Failed to parse"))
+            Err(anyhow!("Failed to parse"))
+        }
     }
 }
