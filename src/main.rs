@@ -1,16 +1,38 @@
+mod client;
 mod data;
 mod parser;
 
-use data::Booking;
-
-fn parse(body: String) -> Result<Vec<Booking>, ()> {
-    parser::parse_query(body)
-}
+use crate::client::{Config, User};
+use crate::data::Booking;
+use crate::parser::ListResponse;
+use futures::{Stream, StreamExt, TryStreamExt};
+use std::convert::TryInto;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
+    //let client = reqwest::Client::new();
 
+    let client = client::Client::new(Config {
+        url: "https://www.elkato.de".parse()?,
+    })?;
+
+    let bookings: Vec<Booking> = client
+        .list_bookings(User {
+            club: "demo".into(),
+            username: "demo".into(),
+            password: "demo".into(),
+        })
+        .boxed()
+        .try_collect()
+        .await?;
+
+    for booking in &bookings {
+        println!("{:?}", booking);
+    }
+
+    println!("Found {} bookings", bookings.len());
+
+    /*
     let resp = client
         .get("https://www.elkato.de/buchung/search.php")
         .basic_auth("demo", Some("demo"))
@@ -28,8 +50,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("URL: {:?}", resp.url());
     println!("{:#?}", resp);
 
-    let result = parse(resp.text().await?);
+    let result = parse(&resp.text().await?);
     println!("{:#?}", result);
+     */
 
     Ok(())
 }

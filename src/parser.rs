@@ -1,11 +1,14 @@
 use nom::do_parse;
 use nom::many0;
-use nom::many1;
+use nom::many_till;
 use nom::named;
 use nom::one_of;
+use nom::opt;
 use nom::tag;
 use nom::take_until;
 use nom::IResult;
+
+use anyhow::anyhow;
 
 use crate::data::Booking;
 use chrono::{DateTime, Utc};
@@ -13,11 +16,15 @@ use nom::character::complete::digit1;
 
 use chrono::TimeZone;
 use chrono_tz::Europe::Berlin;
-use nom::Err::Incomplete;
 
 fn parse_int(input: &str) -> IResult<&str, u32> {
     let (input, digits) = digit1(input)?;
     IResult::Ok((input, u32::from_str_radix(digits, 10).unwrap()))
+}
+
+fn parse_usize(input: &str) -> IResult<&str, usize> {
+    let (input, digits) = digit1(input)?;
+    IResult::Ok((input, usize::from_str_radix(digits, 10).unwrap()))
 }
 
 named!(date<&str,DateTime<Utc>>,
@@ -32,7 +39,7 @@ named!(date<&str,DateTime<Utc>>,
 
 //named!(space<&str, Vec<char>>, many0!(char!(' ')));
 named!(space<&str, Vec<char>>,
-     many1!(one_of!("\t\n\r "))
+     many0!(one_of!("\t\n\r "))
 );
 
 named!(style<&str,()>, do_parse!(
@@ -45,6 +52,28 @@ fn parse_description(desc: &str) -> Option<String> {
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
 }
+
+#[derive(Copy, Clone, Debug)]
+pub struct Paging {
+    pub from: usize,
+    pub to: usize,
+    pub total: usize,
+}
+
+named!(
+    paging<&str,Paging>,
+    do_parse!(
+        take_until!("<B>Eintr&auml;ge") >> tag!("<B>Eintr&auml;ge") >>
+        space >> from: parse_usize >>
+        space >> tag!("bis") >> space >> to: parse_usize >>
+        space >> tag!("von") >> space >> total: parse_usize >> tag!("<BR>") >>
+        (
+            Paging{
+                from, to, total,
+            }
+        )
+    )
+);
 
 named!(
     result_entry<&str, Booking>,
@@ -73,7 +102,7 @@ named!(
 
         // description
         space >> tag!("<TD nowrap>") >> description: take_until!("</TD>") >> tag!("</TD>\n") >>
-        space >> tag!("</TR>") >>
+        space >> tag!("</TR>") >> space >>
 
         (
             Booking {
@@ -89,32 +118,38 @@ named!(
     )
 );
 
-named!(all_entries<&str, Vec<Booking>>, many0!(result_entry));
+// named!(all_entries<&str, Vec<Booking>>, many0!(result_entry));
 
-pub fn parse_query(body: String) -> Result<Vec<Booking>, ()> {
+named!(all_entries<&str, (Option<Paging>,Vec<Booking>)>,
+    do_parse!(
+        paging: opt!(paging) >>
+        entries: many_till!(result_entry, tag!("</TABLE>")) >>
+        (
+            (paging, entries.0)
+        )
+    )
+);
+
+#[derive(Clone, Debug)]
+pub struct ListResponse {
+    pub paging: Option<Paging>,
+    pub bookings: Vec<Booking>,
+}
+
+pub fn parse_query(body: &String) -> anyhow::Result<ListResponse> {
     println!("Payload: {}", body);
 
-    let result = all_entries(&body);
-    println!("Result: {:?}", result);
-    Ok(result.unwrap().1)
-
-    /*
-        let result = result_entry(&body);
-        println!("Result: {:?}", result);
-        let (rem, b) = {
-            let r = result.unwrap();
-            (r.0, r.1)
-        };
-        let r2 = result_entry(rem);
-        println!("Result: {:?}", r2);
-    */
-    /*
-    let result = all_entries(&body).map_err(|e| {
-        println!("Err: {:?}", e);
-    })?;
-     */
-
-    //println!("Rem: {:?}", result.0);
-    //Ok(result.1)
-    //Ok(vec![b, r2.unwrap().1])
+    match all_entries(&body) {
+        Ok(result) => {
+            // the let isn't necessary, but works around a parser issue of IntelliJ and rustfmt
+            // when using "result.1.0", where "1.0" is interpreted as an float, rather than two
+            // identifiers
+            let r = result.1;
+            Ok(ListResponse {
+                paging: r.0,
+                bookings: r.1,
+            })
+        }
+        _ => Err(anyhow!("Failed to parse")),
+    }
 }
