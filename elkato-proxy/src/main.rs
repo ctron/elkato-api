@@ -58,6 +58,9 @@ async fn main() -> anyhow::Result<()> {
         url: "https://www.elkato.de".parse()?,
     })?;
 
+    let addr = std::env::var("BIND_ADDR").ok();
+    let addr = addr.as_ref().map(|s| s.as_str());
+
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
@@ -67,7 +70,7 @@ async fn main() -> anyhow::Result<()> {
             .service(index)
             .service(list_current_bookings)
     })
-    .bind("127.0.0.1:8080")?
+    .bind(addr.unwrap_or("127.0.0.1:8080"))?
     .run()
     .await?;
 
