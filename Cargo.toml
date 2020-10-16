@@ -1,0 +1,17 @@
+[package]
+name = "elkato-api"
+version = "0.1.0"
+authors = ["Jens Reimann <ctron@dentrassi.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.10", features = ["json"] }
+tokio = { version = "0.2", features = ["full"] }
+nom = "5"
+
+htmlescape = "0.3"
+
+chrono = "0.4"
+chrono-tz = "0.5"
