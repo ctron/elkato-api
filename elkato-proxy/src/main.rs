@@ -3,6 +3,7 @@ use actix_web::{get, middleware, web, App, HttpResponse, HttpServer, Responder};
 use elkato_client::{Client, Config, ListOptions, User};
 use serde_json::json;
 
+use actix_cors::Cors;
 use actix_web_httpauth::extractors::basic;
 use actix_web_httpauth::extractors::basic::BasicAuth;
 use chrono::{Duration, Local, Utc};
@@ -69,6 +70,7 @@ async fn main() -> anyhow::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
+            .wrap(Cors::new().allowed_origin("*").finish())
             .data(basic::Config::default().realm("Elkato Proxy"))
             .data(web::JsonConfig::default().limit(4096))
             .data(client.clone())
