@@ -1,6 +1,8 @@
 [workspace]
 
 members =[
+    "elkato-common",
     "elkato-client",
     "elkato-proxy",
+    "elkato-frontend",
 ]

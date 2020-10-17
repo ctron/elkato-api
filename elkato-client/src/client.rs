@@ -1,7 +1,7 @@
-use crate::data::Booking;
 use crate::parser;
 use anyhow::Context;
 use chrono::{Date, Datelike, Utc};
+use elkato_common::data::Booking;
 use futures::TryStream;
 use futures::{stream, TryStreamExt};
 use reqwest::header::HeaderValue;

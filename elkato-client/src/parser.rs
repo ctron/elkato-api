@@ -11,8 +11,8 @@ use nom::IResult;
 
 use anyhow::anyhow;
 
-use crate::data::Booking;
 use chrono::{DateTime, Utc};
+use elkato_common::data::Booking;
 use nom::character::complete::digit1;
 
 use chrono::TimeZone;

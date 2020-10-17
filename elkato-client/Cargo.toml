@@ -4,8 +4,6 @@ version = "0.1.0"
 authors = ["Jens Reimann <ctron@dentrassi.de>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 
 anyhow = "1"
@@ -25,6 +23,8 @@ chrono-tz = "0.5"
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+elkato-common = { path = "../elkato-common" }
 
 [dev-dependencies]
 env_logger = "0.7"

@@ -5,8 +5,6 @@
 //! crate uses 'nom' to scrape information from the generated pages.
 
 mod client;
-mod data;
 mod parser;
 
 pub use client::*;
-pub use data::*;

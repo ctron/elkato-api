@@ -31,8 +31,21 @@ spec:
           env:
             - name: RUST_LOG
               value: info
+            - name: BIND_ADDR
+              value: "0.0.0.0:8080"
           ports:
             - containerPort: 8080
               name: api
               protocol: TCP
-
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
