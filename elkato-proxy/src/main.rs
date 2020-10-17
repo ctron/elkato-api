@@ -70,7 +70,7 @@ async fn main() -> anyhow::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
-            .wrap(Cors::new().allowed_origin("*").finish())
+            .wrap(Cors::new().send_wildcard().finish())
             .data(basic::Config::default().realm("Elkato Proxy"))
             .data(web::JsonConfig::default().limit(4096))
             .data(client.clone())
