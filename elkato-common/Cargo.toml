@@ -1,0 +1,15 @@
+[package]
+name = "elkato-common"
+version = "0.1.0"
+authors = ["Jens Reimann <ctron@dentrassi.de>"]
+edition = "2018"
+
+[dependencies]
+
+anyhow = "1"
+log = "0.4"
+
+chrono = { version = "0.4", features = ["serde"] }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
