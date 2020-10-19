@@ -15,14 +15,15 @@ spec:
       - as: [builder]
         from:
           kind: ImageStreamTag
-          name: ubi8-minimal:latest
+          name: rust:latest
   strategy:
     type: docker
     dockerStrategy:
       from:
         kind: ImageStreamTag
-        name: rust:latest
+        name: ubi8-minimal:latest
   output:
     to:
       kind: ImageStreamTag
       name: elkato-proxy:latest
+

@@ -1,3 +1,17 @@
+---
+kind: Route
+apiVersion: v1
+metadata:
+  name: elkato-proxy
+spec:
+  to:
+    kind: Service
+    name: elkato-proxy
+  port:
+    targetPort: api
+  tls:
+    termination: edge
+---
 kind: Route
 apiVersion: v1
 metadata:
@@ -5,8 +19,8 @@ metadata:
 spec:
   to:
     kind: Service
-    name: elkato
+    name: elkato-frontend
   port:
-    targetPort: api
+    targetPort: frontend
   tls:
     termination: edge

@@ -28,12 +28,12 @@ spec:
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
-  name: rust
+  name: fedora
 spec:
   tags:
     - from:
         kind: DockerImage
-        name: docker.io/library/rust
+        name: docker.io/library/fedora:32
       name: latest
       importPolicy:
         scheduled: true
@@ -41,4 +41,28 @@ spec:
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
+  name: rust
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+    - name: latest
+      annotations: null
+      from:
+        kind: DockerImage
+        name: docker.io/library/rust
+      generation: 2
+      importPolicy:
+        scheduled: true
+      referencePolicy:
+        type: Source
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
   name: elkato-proxy
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: elkato-frontend

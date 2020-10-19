@@ -1,7 +1,8 @@
+---
 kind: Service
 apiVersion: v1
 metadata:
-  name: elkato
+  name: elkato-proxy
   labels:
     app: elkato-proxy
 spec:
@@ -12,3 +13,18 @@ spec:
       protocol: TCP
       port: 8080
       targetPort: api
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: elkato-frontend
+  labels:
+    app: elkato-frontend
+spec:
+  selector:
+    app: elkato-frontend
+  ports:
+    - name: frontend
+      protocol: TCP
+      port: 8080
+      targetPort: frontend

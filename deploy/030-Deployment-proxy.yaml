@@ -4,6 +4,7 @@ metadata:
   name: elkato-proxy
   labels:
     app: elkato-proxy
+    app.kubernetes.io/part-of: elkato-extras
   annotations:
     image.openshift.io/triggers: |
       [

@@ -1,0 +1,29 @@
+---
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: elkato-frontend
+spec:
+  triggers:
+    - type: ImageChange
+  source:
+    type: git
+    git:
+      uri: https://github.com/ctron/elkato-api
+      ref: main
+    images:
+      - as: [builder]
+        from:
+          kind: ImageStreamTag
+          name: fedora:latest
+  strategy:
+    type: docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile.frontend
+      from:
+        kind: ImageStreamTag
+        name: ubi8-minimal:latest
+  output:
+    to:
+      kind: ImageStreamTag
+      name: elkato-frontend:latest
