@@ -8,7 +8,6 @@ RUN dnf -y install gcc
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 RUN dnf -y install file
-
 ENV PATH "$PATH:/root/.cargo/bin"
 RUN \
     curl -sL https://github.com/rustwasm/wasm-pack/releases/download/v0.9.1/wasm-pack-v0.9.1-x86_64-unknown-linux-musl.tar.gz -o /wasm-pack.tar.gz && \
