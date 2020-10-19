@@ -14,8 +14,8 @@ module.exports = (env, argv) => {
         entry: './main.js',
         output: {
             path: distPath,
-            filename: "index.js",
-            webassemblyModuleFilename: "index.wasm"
+            filename: "main.js",
+            webassemblyModuleFilename: "main.wasm"
         },
         module: {
             rules: [
@@ -119,12 +119,6 @@ module.exports = (env, argv) => {
                 extraArgs: "--no-typescript",
             })
         ],
-        optimization: {
-            splitChunks: {
-                // include all types of chunks
-                chunks: 'all'
-            }
-        },
         watch: argv.mode !== 'production'
     };
 };
