@@ -119,6 +119,12 @@ module.exports = (env, argv) => {
                 extraArgs: "--no-typescript",
             })
         ],
+        optimization: {
+            splitChunks: {
+                // include all types of chunks
+                chunks: 'all'
+            }
+        },
         watch: argv.mode !== 'production'
     };
 };

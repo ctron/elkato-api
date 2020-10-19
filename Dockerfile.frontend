@@ -1,0 +1,43 @@
+FROM docker.io/library/fedora:32 as builder
+
+RUN dnf -y install curl
+RUN dnf -y install openssl-devel
+RUN dnf -y install npm
+RUN dnf -y install gcc
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+RUN dnf -y install file
+
+ENV PATH "$PATH:/root/.cargo/bin"
+RUN \
+    curl -sL https://github.com/rustwasm/wasm-pack/releases/download/v0.9.1/wasm-pack-v0.9.1-x86_64-unknown-linux-musl.tar.gz -o /wasm-pack.tar.gz && \
+    file /wasm-pack.tar.gz && \
+    tar --strip-components 1 -xvzf /wasm-pack.tar.gz && \
+    mv wasm-pack /usr/local/bin
+
+RUN rustup target add wasm32-unknown-unknown
+
+RUN mkdir /src
+COPY . /src
+
+WORKDIR /src/elkato-frontend
+
+RUN mkdir -p /root/.config/wasm-pack-nodejs/bin
+RUN ln -s /usr/local/bin/wasm-pack /root/.config/wasm-pack-nodejs/bin/wasm-pack
+RUN npm install
+RUN npm run build
+
+WORKDIR /
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+
+RUN microdnf -y install nginx
+
+RUN mkdir /public
+COPY --from=builder /src/elkato-frontend/pkg/* /public/
+COPY elkato-frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+CMD ["/usr/sbin/nginx", "-g", "daemon off;" ]
+
+EXPOSE 8080
