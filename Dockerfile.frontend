@@ -26,7 +26,6 @@ RUN microdnf -y install nginx
 
 RUN mkdir /public
 COPY --from=builder /src/elkato-frontend/dist/* /public/
-COPY elkato-frontend/static/index.html /public/
 COPY elkato-frontend/nginx.conf /etc/nginx/nginx.conf
 
 CMD ["/usr/sbin/nginx", "-g", "daemon off;" ]
