@@ -122,8 +122,10 @@ impl Model {
     }
 }
 
-#[wasm_bindgen(start)]
-pub fn run_app() {
+#[wasm_bindgen]
+pub fn run_app() -> Result<(), JsValue> {
     web_logger::init();
-    App::<Model>::new().mount_to_body();
+    //App::<Model>::new().mount_to_body();
+    yew::start_app::<Model>();
+    Ok(())
 }
