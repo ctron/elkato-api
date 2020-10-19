@@ -49,3 +49,9 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 5
+          volumeMounts:
+            - mountPath: /run
+              name: run
+      volumes:
+        - name: run
+          emptyDir: {}
