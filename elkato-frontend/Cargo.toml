@@ -16,6 +16,9 @@ wasm-bindgen = "0.2"
 
 elkato-common = { path = "../elkato-common" }
 
+chrono = { version = "0.4", features = ["wasmbind"] }
+chrono-tz = "0.5"
+
 log = "0.4"
 wasm-logger = "0.2"
 
