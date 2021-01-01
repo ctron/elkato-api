@@ -12,8 +12,8 @@ log = "0.4"
 futures = "0.3"
 
 url = "2"
-reqwest = { version = "0.10", features = ["json"] }
-tokio = { version = "0.2", features = ["full"] }
+reqwest = { version = "0.10", features = ["json"], optional = true }
+tokio = { version = "0.2", features = ["full"], optional = true }
 nom = "5"
 
 htmlescape = "0.3"
@@ -25,6 +25,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 elkato-common = { path = "../elkato-common" }
+
+[features]
+default = ["client"]
+client = ["reqwest", "tokio"]
 
 [dev-dependencies]
 env_logger = "0.7"

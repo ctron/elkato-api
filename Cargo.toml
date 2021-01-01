@@ -6,3 +6,6 @@ members =[
     "elkato-proxy",
     "elkato-frontend",
 ]
+
+[patch.crates-io]
+#patternfly-yew = { path = "../../patternfly-yew" }
