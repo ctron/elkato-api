@@ -5,7 +5,7 @@ ADD . /src
 
 WORKDIR /src
 
-RUN cargo build --release
+RUN cargo build --release --package elkato-proxy
 
 WORKDIR /
 
