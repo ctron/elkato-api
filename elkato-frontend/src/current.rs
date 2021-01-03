@@ -8,7 +8,7 @@ use yew::services::fetch::{Request, *};
 use headers::authorization::Credentials;
 use headers::Authorization;
 
-use chrono::Utc;
+use chrono::{Date, DateTime, Duration, Offset, TimeZone, Timelike, Utc};
 use chrono_tz::Europe::Berlin;
 use yew::format::{Json, Nothing};
 
@@ -18,7 +18,7 @@ use crate::BASE_URL;
 pub struct CurrentView {
     link: ComponentLink<Self>,
     ft: Option<FetchTask>,
-    bookings: Vec<Selected<Booking>>,
+    bookings: Vec<Booking>,
 }
 
 #[derive(Debug)]
@@ -79,13 +79,7 @@ impl Component for CurrentView {
                 }
             }
             Msg::FetchReady(response) => {
-                self.bookings = self.select(
-                    response
-                        .unwrap_or_default()
-                        .iter()
-                        .map(|b| Selected::new(b.clone()))
-                        .collect(),
-                );
+                self.bookings = self.select(response.unwrap_or_default());
             }
         }
 
@@ -97,6 +91,8 @@ impl Component for CurrentView {
     }
 
     fn view(&self) -> Html {
+        let now = Utc::now();
+
         html! {
             <>
                 <PageSection variant=PageSectionVariant::Light limit_width=true>
@@ -111,13 +107,13 @@ impl Component for CurrentView {
 
                         <Card
                             selectable=true
-                            selected={sel_booking.selected}
+                            selected={sel_booking.is_active(&now)}
                             title={html_nested!{<>
-                                { self.title(&sel_booking.value) }
+                                { self.title(&sel_booking, &now) }
                             </>}}
                             >
-                            <div>{ &sel_booking.value.resource }</div>
-                            { for sel_booking.value.description.iter().map(|desc|{
+                            <div>{ &sel_booking.resource }</div>
+                            { for sel_booking.description.iter().map(|desc|{
                                 html_nested!{
                                     <div>{ desc }</div>
                                 }
@@ -199,73 +195,82 @@ impl CurrentView {
         ft
     }
 
-    fn title(&self, booking: &Booking) -> String {
-        format!(
-            "{} -> {}",
-            booking
-                .start
-                .with_timezone(&Berlin)
-                .format("%d-%m-%Y %H:%M"),
-            booking.end.with_timezone(&Berlin).format("%d-%m-%Y %H:%M")
-        )
+    fn title(&self, booking: &Booking, now: &DateTime<Utc>) -> String {
+        let dur = booking.end - booking.start;
+
+        let dur = if dur.num_minutes() >= 60 {
+            format!("{} h", dur.num_hours())
+        } else {
+            format!("{} min", dur.num_minutes())
+        };
+
+        let start_date = booking.start.date();
+        let end_date = booking.start.date();
+
+        let tz = &Berlin;
+
+        if start_date == end_date {
+            let date = format_date(&start_date, now, tz);
+            format!(
+                "{} | {} → {} ({})",
+                date,
+                booking.start.with_timezone(tz).format("%H:%M"),
+                booking.end.with_timezone(tz).format("%H:%M"),
+                dur
+            )
+        } else {
+            let start_date = format_date(&start_date, now, tz);
+            let end_date = format_date(&end_date, now, tz);
+            format!(
+                "{} {} → {} {} ({})",
+                start_date,
+                booking.start.with_timezone(tz).format("%H:%M"),
+                end_date,
+                booking.end.with_timezone(tz).format("%H:%M"),
+                dur
+            )
+        }
     }
 
-    fn select(&self, mut bookings: Vec<Selected<Booking>>) -> Vec<Selected<Booking>> {
+    fn select(&self, mut bookings: Vec<Booking>) -> Vec<Booking> {
         // sort by time asc
-
-        bookings.sort_by(|a, b| {
-            a.value
-                .start
-                .cmp(&b.value.start)
-                .then_with(|| a.value.end.cmp(&b.value.end))
-        });
+        bookings.sort_by(|a, b| a.start.cmp(&b.start).then_with(|| a.end.cmp(&b.end)));
 
         log::info!("Bookings: {:?}", bookings);
 
         let now = Utc::now();
-        let mut selected: Option<&String> = None;
 
-        // iterate: back to front
+        let mut new = Vec::new();
+
         for b in bookings.iter().rev() {
-            log::info!("Sel: {:?}", b);
-            if b.value.start > now {
-                selected = Some(&b.value.id);
+            if b.end >= now {
+                new.push(b.clone());
             } else {
-                if selected.is_none() {
-                    selected = Some(&b.value.id);
-                }
+                new.push(b.clone());
                 break;
             }
         }
 
-        let selected = selected.map(|s| s.clone());
+        new.reverse();
+        new
+    }
+}
 
-        // if an item is selected...
-        if let Some(sel) = selected {
-            // ...mark as selected
-            for ref mut b in &mut bookings {
-                if &b.value.id == &sel {
-                    b.selected = true;
-                }
-            }
+fn format_date<Tz>(date: &Date<Utc>, now: &DateTime<Utc>, tz: &Tz) -> String
+where
+    Tz: TimeZone,
+    Tz::Offset: std::fmt::Display,
+{
+    let now = now.date();
+    let day = Duration::days(1);
 
-            let mut new = Vec::new();
-
-            for b in bookings.iter().rev() {
-                let mut b = b.clone();
-
-                if b.value.id.eq(&sel) {
-                    b.selected = true;
-                    new.push(b);
-                    new.reverse();
-                    return new;
-                } else {
-                    new.push(b);
-                }
-            }
-            new
-        } else {
-            bookings
-        }
+    if &now == date {
+        "Today".to_string()
+    } else if &(now + day) == date {
+        "Tomorrow".to_string()
+    } else if &(now - day) == date {
+        "Yesterday".to_string()
+    } else {
+        date.with_timezone(tz).format("%v").to_string()
     }
 }

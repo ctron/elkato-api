@@ -13,3 +13,9 @@ pub struct Booking {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 }
+
+impl Booking {
+    pub fn is_active(&self, now: &DateTime<Utc>) -> bool {
+        now >= &self.start && now <= &self.end
+    }
+}
