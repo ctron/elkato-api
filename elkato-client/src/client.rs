@@ -1,18 +1,14 @@
+use crate::config::User;
 use crate::parser;
 use anyhow::Context;
 use chrono::{Date, Datelike, Utc};
 use elkato_common::data::Booking;
 use futures::TryStream;
 use futures::{stream, TryStreamExt};
-use serde::{Deserialize, Serialize};
+use reqwest::header::{self, HeaderValue};
+use tokio::stream::StreamExt;
 use url::{ParseError, Url};
 
-#[cfg(feature = "reqwest")]
-use reqwest::header::{self, HeaderValue};
-#[cfg(feature = "reqwest")]
-use tokio::stream::StreamExt;
-
-#[cfg(feature = "reqwest")]
 #[derive(Clone, Debug)]
 pub struct Client {
     config: Config,
@@ -22,13 +18,6 @@ pub struct Client {
 #[derive(Clone, Debug)]
 pub struct Config {
     pub url: Url,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct User {
-    pub club: String,
-    pub username: String,
-    pub password: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -66,7 +55,6 @@ fn date_filter_to_query(prefix: &str, date: Option<Date<Utc>>) -> Vec<(String, S
     }
 }
 
-#[cfg(feature = "reqwest")]
 impl Client {
     pub fn new(config: Config) -> anyhow::Result<Self> {
         let mut headers = header::HeaderMap::new();

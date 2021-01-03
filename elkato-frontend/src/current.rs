@@ -8,7 +8,7 @@ use yew::services::fetch::{Request, *};
 use headers::authorization::Credentials;
 use headers::Authorization;
 
-use chrono::{Date, DateTime, Duration, Offset, TimeZone, Timelike, Utc};
+use chrono::{Date, DateTime, Duration, TimeZone, Utc};
 use chrono_tz::Europe::Berlin;
 use yew::format::{Json, Nothing};
 
@@ -19,33 +19,6 @@ pub struct CurrentView {
     link: ComponentLink<Self>,
     ft: Option<FetchTask>,
     bookings: Vec<Booking>,
-}
-
-#[derive(Debug)]
-pub struct Selected<T> {
-    pub value: T,
-    pub selected: bool,
-}
-
-impl<T> Selected<T> {
-    pub fn new(value: T) -> Self {
-        Selected {
-            value,
-            selected: false,
-        }
-    }
-}
-
-impl<T> Clone for Selected<T>
-where
-    T: Clone,
-{
-    fn clone(&self) -> Self {
-        Selected {
-            selected: self.selected,
-            value: self.value.clone(),
-        }
-    }
 }
 
 pub enum Msg {

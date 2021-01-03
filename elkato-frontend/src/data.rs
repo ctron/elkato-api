@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use elkato_client::User;
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
 use yew::format::Json;
 use yew::services::storage::*;
 

@@ -1,15 +1,12 @@
 use crate::current::CurrentView;
 use crate::data::Config;
 
-use anyhow::anyhow;
-
 use patternfly_yew::*;
 
 use elkato_client::User;
 use std::collections::HashMap;
 use url::Url;
 use yew::prelude::*;
-use yew::services::storage::*;
 
 pub struct App {}
 
