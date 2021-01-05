@@ -1,6 +1,7 @@
 use chrono::{Duration, Local, Utc};
-use elkato_client::{Booking, Client, ListOptions};
+use elkato_client::{Client, ListOptions};
 use elkato_client::{Config, User};
+use elkato_common::data::Booking;
 use futures::{StreamExt, TryStreamExt};
 
 #[tokio::main]

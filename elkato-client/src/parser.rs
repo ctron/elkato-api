@@ -107,7 +107,7 @@ named!(
         (
             Booking {
                 id: id.into(),
-                //id: "x".into(),
+                location: Default::default(),
                 resource: resource.into(),
                 user: user.into(),
                 start: start,
@@ -137,7 +137,7 @@ pub struct ListResponse {
 }
 
 pub fn parse_query(body: &String) -> anyhow::Result<ListResponse> {
-    log::trace!("Payload: {}", body);
+    log::debug!("Payload: {}", body);
 
     if body.contains("<B>Die Suche ergab keine Treffer!</B>") {
         return Ok(ListResponse {

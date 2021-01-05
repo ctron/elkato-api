@@ -1,4 +1,4 @@
-use crate::config::User;
+use crate::config::{Config, User};
 use crate::parser;
 use anyhow::Context;
 use chrono::{Date, Datelike, Utc};
@@ -13,11 +13,6 @@ use url::{ParseError, Url};
 pub struct Client {
     config: Config,
     client: reqwest::Client,
-}
-
-#[derive(Clone, Debug)]
-pub struct Config {
-    pub url: Url,
 }
 
 #[derive(Clone, Debug)]
@@ -148,7 +143,18 @@ impl Client {
                             Some(p) => Some(p.to),
                         };
 
-                        let y = stream::iter(result.bookings).map(|b| Ok(b));
+                        let context = (next.url.clone(), next.user.clone());
+
+                        let y = stream::iter(result.bookings)
+                            .map(move |b| {
+                                let mut b = b.clone();
+                                b.location = match &context.0 {
+                                    Ok(url) => make_url(&b.id, url, &context.1).ok(),
+                                    _ => None,
+                                };
+                                b
+                            })
+                            .map(|b| Ok(b));
 
                         Ok(Some((
                             y,
@@ -163,4 +169,16 @@ impl Client {
         })
         .try_flatten()
     }
+}
+
+/// Create the URL for a booking
+fn make_url(id: &str, url: &Url, user: &User) -> Result<Url, ParseError> {
+    let mut url = url.join(&format!("/buchung/view_entry.php"))?;
+
+    url.query_pairs_mut()
+        .clear()
+        .append_pair("club", &user.club)
+        .append_pair("id", id);
+
+    Ok(url)
 }
