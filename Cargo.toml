@@ -8,4 +8,4 @@ members =[
 ]
 
 [patch.crates-io]
-#patternfly-yew = { path = "../../patternfly-yew" }
+patternfly-yew = { git = "https://github.com/ctron/patternfly-yew", branch = "main" }

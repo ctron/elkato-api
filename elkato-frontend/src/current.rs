@@ -10,6 +10,7 @@ use headers::Authorization;
 
 use chrono::{Date, DateTime, Duration, TimeZone, Utc};
 use chrono_tz::Europe::Berlin;
+use url::Url;
 use yew::format::{Json, Nothing};
 
 use crate::data::Config;
@@ -24,6 +25,7 @@ pub struct CurrentView {
 pub enum Msg {
     FetchData,
     FetchReady(Result<Vec<Booking>, Error>),
+    Open(Option<Url>),
 }
 
 impl Component for CurrentView {
@@ -54,6 +56,17 @@ impl Component for CurrentView {
             Msg::FetchReady(response) => {
                 self.bookings = self.select(response.unwrap_or_default());
             }
+            Msg::Open(url) => {
+                match url {
+                    Some(url) => {
+                        yew::utils::window()
+                            .open_with_url_and_target(url.as_str(), "_blank")
+                            .ok();
+                    }
+                    None => {}
+                }
+                return false;
+            }
         }
 
         true
@@ -80,6 +93,7 @@ impl Component for CurrentView {
 
                         <Card
                             selectable=true
+                            onclick=self.make_onclick(&sel_booking)
                             selected={sel_booking.is_active(&now)}
                             title={html_nested!{<>
                                 { self.title(&sel_booking, &now) }
@@ -105,6 +119,11 @@ impl Component for CurrentView {
 }
 
 impl CurrentView {
+    fn make_onclick<E>(&self, sel_booking: &Booking) -> Callback<E> {
+        let loc = sel_booking.location.clone();
+        self.link.callback(move |_| Msg::Open(loc.clone()))
+    }
+
     fn error<S: Into<String>>(err: S) {
         ToastDispatcher::new().toast(Toast {
             title: "Error fetching data".into(),

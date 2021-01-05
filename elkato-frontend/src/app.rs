@@ -48,15 +48,11 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        let tools = html! {};
-
         html! {
         <>
             <ToastViewer/>
-            <Page
-                tools=tools
-                >
-                    <CurrentView/>
+            <Page>
+                <CurrentView/>
             </Page>
         </>
         }

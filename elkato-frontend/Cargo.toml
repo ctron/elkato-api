@@ -33,4 +33,4 @@ wasm-logger = "0.2"
 
 headers = "0.3"
 
-patternfly-yew = "0.0.10"
+patternfly-yew = "0.0.11"
