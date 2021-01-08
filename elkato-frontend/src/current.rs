@@ -25,6 +25,7 @@ pub struct CurrentView {
 pub enum Msg {
     FetchData,
     FetchReady(Result<Vec<Booking>, Error>),
+    FetchFailed(String),
     Open(Option<Url>),
 }
 
@@ -55,6 +56,9 @@ impl Component for CurrentView {
             }
             Msg::FetchReady(response) => {
                 self.bookings = self.select(response.unwrap_or_default());
+            }
+            Msg::FetchFailed(msg) => {
+                Self::error(msg);
             }
             Msg::Open(url) => {
                 match url {
@@ -146,13 +150,13 @@ impl CurrentView {
             return Err(anyhow!("Missing user information"));
         }
 
-        let callback = self.link.batch_callback(
+        let callback = self.link.callback(
             move |response: Response<Json<Result<Vec<Booking>, Error>>>| {
                 let (meta, Json(data)) = response.into_parts();
                 if meta.status.is_success() {
-                    vec![Msg::FetchReady(data)]
+                    Msg::FetchReady(data)
                 } else {
-                    vec![] // FIXME: Handle this error accordingly.
+                    Msg::FetchFailed(format!("Code: {}", meta.status))
                 }
             },
         );
@@ -170,19 +174,17 @@ impl CurrentView {
         let club = &config.user.club;
         let club = percent_encoding::utf8_percent_encode(club, percent_encoding::NON_ALPHANUMERIC);
 
-        ::log::info!("Auth: {:?}", auth.0.encode());
-
         let request = Request::get(format!("{}/{}/bookings/current", BASE_URL.to_owned(), club))
             .header("Authorization", auth.0.encode())
             .body(Nothing);
 
-        log::info!("Request: {:?}", request);
+        log::debug!("Request: {:?}", request);
 
         let request = request.unwrap();
 
         let ft = FetchService::fetch(request, callback);
 
-        log::info!("FT: {:?}", ft);
+        log::debug!("FT: {:?}", ft);
 
         ft
     }
@@ -190,11 +192,7 @@ impl CurrentView {
     fn title(&self, booking: &Booking, now: &DateTime<Utc>) -> String {
         let dur = booking.end - booking.start;
 
-        let dur = if dur.num_minutes() >= 60 {
-            format!("{} h", dur.num_hours())
-        } else {
-            format!("{} min", dur.num_minutes())
-        };
+        let dur = self.format_duration(&dur);
 
         let start_date = booking.start.date();
         let end_date = booking.start.date();
@@ -221,6 +219,23 @@ impl CurrentView {
                 booking.end.with_timezone(tz).format("%H:%M"),
                 dur
             )
+        }
+    }
+
+    fn format_duration(&self, duration: &Duration) -> String {
+        let mins = duration.num_minutes();
+        if mins < 60 {
+            format!("{} min", mins)
+        } else {
+            let hours = duration.num_hours();
+            let rem = *duration - Duration::hours(hours);
+            match rem.num_minutes() {
+                0 => format!("{} h", hours),
+                15 => format!("{} ¼ h ", hours),
+                30 => format!("{} ½ h", hours),
+                45 => format!("{} ¾ h", hours),
+                mins => format!("{} h {} min", hours, mins),
+            }
         }
     }
 
